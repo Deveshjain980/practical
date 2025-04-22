@@ -1,0 +1,75 @@
+#mlops6
+
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report
+
+# Load Titanic dataset (from seaborn or CSV)
+import seaborn as sns
+df = sns.load_dataset("titanic").dropna(subset=["age", "embarked", "fare"])
+
+# Encode categorical variables
+df = df.copy()
+df['sex'] = df['sex'].map({'male': 0, 'female': 1})
+df['embarked'] = df['embarked'].map({'S': 0, 'C': 1, 'Q': 2})
+
+# Features & labels
+features = ['pclass', 'sex', 'age', 'fare', 'embarked']
+X = df[features]
+y = df['survived']
+
+# Split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Models
+lr = LogisticRegression(max_iter=200)
+rf = RandomForestClassifier(random_state=42)
+
+# Train
+lr.fit(X_train, y_train)
+rf.fit(X_train, y_train)
+
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+import matplotlib.pyplot as plt
+
+# Logistic Regression
+cm_lr = confusion_matrix(y_test, lr.predict(X_test))
+disp_lr = ConfusionMatrixDisplay(confusion_matrix=cm_lr, display_labels=lr.classes_)
+disp_lr.plot()
+plt.title("Logistic Regression Confusion Matrix")
+plt.savefig("results/confusion_matrix_lr.png")
+plt.clf()
+
+# Random Forest
+cm_rf = confusion_matrix(y_test, rf.predict(X_test))
+disp_rf = ConfusionMatrixDisplay(confusion_matrix=cm_rf, display_labels=rf.classes_)
+disp_rf.plot()
+plt.title("Random Forest Confusion Matrix")
+plt.savefig("results/confusion_matrix_rf.png")
+plt.clf()
+
+from sklearn.metrics import precision_recall_curve, PrecisionRecallDisplay
+
+# Logistic Regression
+y_scores_lr = lr.predict_proba(X_test)[:, 1]
+precision_lr, recall_lr, _ = precision_recall_curve(y_test, y_scores_lr)
+disp = PrecisionRecallDisplay(precision=precision_lr, recall=recall_lr)
+disp.plot()
+plt.title("Precision-Recall Curve: Logistic Regression")
+plt.savefig("results/precision_recall_lr.png")
+plt.clf()
+
+y_scores_rf = rf.predict_proba(X_test)[:, 1]
+precision_rf, recall_rf, _ = precision_recall_curve(y_test, y_scores_rf)
+disp = PrecisionRecallDisplay(precision=precision_rf, recall=recall_rf)
+disp.plot()
+plt.title("Precision-Recall Curve: Random Forest")
+plt.savefig("results/precision_recall_rf.png")
+plt.clf()
+
+print("Logistic Regression:\n", classification_report(y_test, lr.predict(X_test)))
+print("Random Forest:\n", classification_report(y_test, rf.predict(X_test)))
+
+mkdir -p results
+
