@@ -1,0 +1,36 @@
+
+#MLOPS3
+import pandas as pd
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score
+import joblib
+import os
+
+os.makedirs('3/models', exist_ok=True)
+
+
+# 1. Train a Model:
+data = load_iris()
+X = data.data
+y = data.target
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+model = DecisionTreeClassifier()
+model.fit(X_train, y_train)
+
+y_pred = model.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Model Accuracy: {accuracy * 100:.2f}%")
+
+# 2. Save the Model:
+joblib.dump(model, '3/models/iris_decision_tree_model.joblib')
+print("Model saved successfully!")
+
+# 3. Reuse the Model:
+loaded_model = joblib.load('3/models/iris_decision_tree_model.joblib')
+y_pred_loaded = loaded_model.predict(X_test)
+accuracy_loaded = accuracy_score(y_test, y_pred_loaded)
+print(f"Reused Model Accuracy: {accuracy_loaded * 100:.2f}%")
